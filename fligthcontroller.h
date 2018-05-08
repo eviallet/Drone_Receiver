@@ -7,9 +7,11 @@
 #include <softPwm.h>
 #include "packet.h"
 
+typedef unsigned char byte;
+
 typedef struct {
-    int pin;
-    short speed;
+    unsigned int pin;
+    byte speed;
 } Motor;
 
 

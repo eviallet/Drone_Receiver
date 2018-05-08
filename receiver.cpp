@@ -45,8 +45,8 @@ void Receiver::on_socket_data_readyRead() {
         QByteArray received = _socket_data->read(4*sizeof(short));
         Command cmd;
         memcpy(cmd.Bytes, received.data(), 4*sizeof(short));
-        qDebug() << "Received : HG " << QString::number(cmd.motor_H_G) << " HD " << QString::number(cmd.motor_H_D)
-                 << " BG " << QString::number(cmd.motor_B_G) << " BD " << QString::number(cmd.motor_B_D);
+        //qDebug() << "Received : HG " << QString::number(cmd.motor_H_G) << " HD " << QString::number(cmd.motor_H_D)
+        //         << " BG " << QString::number(cmd.motor_B_G) << " BD " << QString::number(cmd.motor_B_D);
         emit(command_received(cmd));
     }
 

@@ -30,5 +30,5 @@ HEADERS += \
     fligthcontroller.h
 
 
-LIBS += -L/usr/local/include -lwiringPi -lpthread
+LIBS += -L/usr/local/include -lpigpio -lpthread
 

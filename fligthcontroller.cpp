@@ -8,13 +8,18 @@ FligthController::FligthController(QObject *parent) : QObject(parent) {
     drone.BG.pin = 3;
     drone.BD.pin = 12;
 
-    if(softPwmCreate(drone.HG.pin, 0, 1024))
+    pinMode(drone.HG.pin, OUTPUT);
+    pinMode(drone.HD.pin, OUTPUT);
+    pinMode(drone.BG.pin, OUTPUT);
+    pinMode(drone.BD.pin, OUTPUT);
+
+    if(softPwmCreate(drone.HG.pin, 0, 100))
         qWarning() << "Couldn't create HG softPwm pin : " << strerror(errno);
-    if(softPwmCreate(drone.HD.pin, 0, 1024))
+    if(softPwmCreate(drone.HD.pin, 0, 100))
         qWarning() << "Couldn't create HD softPwm pin : " << strerror(errno);
-    if(softPwmCreate(drone.BG.pin, 0, 1024))
+    if(softPwmCreate(drone.BG.pin, 0, 100))
         qWarning() << "Couldn't create BG softPwm pin : " << strerror(errno);
-    if(softPwmCreate(drone.BD.pin, 0, 1024))
+    if(softPwmCreate(drone.BD.pin, 0, 100))
         qWarning() << "Couldn't create BD softPwm pin : " << strerror(errno);
 }
 
@@ -23,6 +28,9 @@ void FligthController::on_command_received(Command cmd) {
     drone.HD.speed = cmd.motor_H_D;
     drone.BG.speed = cmd.motor_B_G;
     drone.BD.speed = cmd.motor_B_D;
+
+    qDebug() << "Writing : HG " << QString::number(drone.HG.speed) << " HD " << QString::number(drone.HD.speed)
+             << " BG " << QString::number(drone.BG.speed) << " BD " << QString::number(drone.BD.speed);
 
     softPwmWrite(drone.HG.pin, drone.HG.speed);
     softPwmWrite(drone.HD.pin, drone.HD.speed);
