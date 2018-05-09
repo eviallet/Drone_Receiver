@@ -3,15 +3,16 @@
 
 #include <QObject>
 #include <QDebug>
-#include <wiringPi.h>
-#include <softPwm.h>
+#include <pigpio.h>
 #include "packet.h"
 
-typedef unsigned char byte;
+#define MAX_WIDTH 2000
+#define MIN_WIDTH 1000
+
 
 typedef struct {
     unsigned int pin;
-    byte speed;
+    unsigned short speed;
 } Motor;
 
 
@@ -33,6 +34,8 @@ public slots:
     void on_command_received(Command);
     void on_connection_lost();
     void on_connection_recovered();
+private slots:
+    unsigned short map(unsigned short x, int in_min, int in_max, int out_min, int out_max);
 private:
     Quadrocopter drone;
 };
