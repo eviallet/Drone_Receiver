@@ -2,15 +2,25 @@
 
 FligthController::FligthController(QObject *parent) : QObject(parent) {
 
-    drone.HG.pin = 11;
-    drone.HD.pin = 13;
-    drone.BG.pin = 15;
-    drone.BD.pin = 19;
+    drone.HG.pin = 17;
+    drone.HD.pin = 27;
+    drone.BG.pin = 22;
+    drone.BD.pin = 10;
 
     if(gpioInitialise()<0)
         qWarning() << "Couldn't initialise GPIOs";
     else
         qDebug() << "GPIOs initialized";
+
+    drone.HG.speed = MIN_WIDTH;
+    drone.HD.speed = MIN_WIDTH;
+    drone.BG.speed = MIN_WIDTH;
+    drone.BD.speed = MIN_WIDTH;
+
+    gpioServo(drone.HG.pin, drone.HG.speed);
+    gpioServo(drone.HD.pin, drone.HD.speed);
+    gpioServo(drone.BG.pin, drone.BG.speed);
+    gpioServo(drone.BD.pin, drone.BD.speed);
 }
 
 void FligthController::on_command_received(Command cmd) {
@@ -19,18 +29,8 @@ void FligthController::on_command_received(Command cmd) {
     drone.BG.speed = map(cmd.motor_B_G, 0, 65535, MIN_WIDTH, MAX_WIDTH);
     drone.BD.speed = map(cmd.motor_B_D, 0, 65535, MIN_WIDTH, MAX_WIDTH);
 
-    if(drone.HG.speed<=1200)
-        drone.HG.speed = 1000;
-    if(drone.HD.speed<=1200)
-        drone.HD.speed = 1000;
-    if(drone.BG.speed<=1200)
-        drone.BG.speed = 1000;
-    if(drone.BD.speed<=1200)
-        drone.BD.speed = 1000;
-
     qDebug() << "Writing : HG " << QString::number(drone.HG.speed) << " HD " << QString::number(drone.HD.speed)
              << " BG " << QString::number(drone.BG.speed) << " BD " << QString::number(drone.BD.speed);
-
 
     gpioServo(drone.HG.pin, drone.HG.speed);
     gpioServo(drone.HD.pin, drone.HD.speed);
