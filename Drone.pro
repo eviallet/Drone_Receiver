@@ -11,7 +11,9 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     receiver.cpp \
-    fligthcontroller.cpp
+    fligthcontroller.cpp \
+    gyro.cpp \
+    corrector.cpp
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -27,7 +29,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 HEADERS += \
     receiver.h \
     packet.h \
-    fligthcontroller.h
+    fligthcontroller.h \
+    gyro.h \
+    corrector.h
 
 
 LIBS += -L/usr/local/include -lpigpio -lpthread
