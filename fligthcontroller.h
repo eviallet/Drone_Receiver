@@ -7,8 +7,6 @@
 #include <unistd.h>
 #include "packet.h"
 #include "corrector.h"
-#include "gyro.h"
-
 #define DEBUG
 #define FILE_LOG
 
@@ -58,8 +56,7 @@ private slots:
     void text();
 private:
     Quadrocopter drone;
-    Gyro *_gyro;
-    Corrector *_pitch_pid, *_roll_pid; //, *_yaw_pid;
+    Corrector *_pitch_pid, *_roll_pid, *_yaw_pid;
     Command _desired;
     QSocketNotifier notifier;
 

@@ -39,15 +39,11 @@ FligthController::FligthController(QObject *parent) : QObject(parent), notifier(
         gpioServo(drone.BD.pin, drone.BD.speed);
     #endif
 
-    _gyro = new Gyro;
     _roll_pid = new Corrector;
     _pitch_pid = new Corrector;
-    //_yaw_pid = new Corrector;
+    _yaw_pid = new Corrector;
 
-    connect(_gyro, &Gyro::data, this, &FligthController::on_sensors_updated);
-
-    _gyro->start(QThread::HighPriority);
-
+    //connect(_gyro, &Gyro::data, this, &FligthController::on_sensors_updated);
 }
 
 void FligthController::on_sensors_updated(double roll, double pitch) {
@@ -65,10 +61,10 @@ void FligthController::on_command_received(Command cmd) {
 
 void FligthController::compute_command() {
     Command cmd;
-    cmd.motor_H_G = _desired.motor_H_G + _pitch_pid->get_output(); //- _yaw_pid->get_output();
-    cmd.motor_H_D = _desired.motor_H_D - _roll_pid->get_output(); //- _yaw_pid->get_output();
-    cmd.motor_B_G = _desired.motor_B_G + _roll_pid->get_output(); //+ _yaw_pid->get_output();
-    cmd.motor_B_D = _desired.motor_B_D - _pitch_pid->get_output();//+ _yaw_pid->get_output();
+    cmd.motor_H_G = _desired.motor_H_G + _pitch_pid->get_output() - _yaw_pid->get_output();
+    cmd.motor_H_D = _desired.motor_H_D - _roll_pid->get_output() - _yaw_pid->get_output();
+    cmd.motor_B_G = _desired.motor_B_G + _roll_pid->get_output() + _yaw_pid->get_output();
+    cmd.motor_B_D = _desired.motor_B_D - _pitch_pid->get_output() + _yaw_pid->get_output();
 
     drone.HG.speed = map(cmd.motor_H_G);
     drone.HD.speed = map(cmd.motor_H_D);

@@ -12,8 +12,10 @@ TEMPLATE = app
 SOURCES += main.cpp \
     receiver.cpp \
     fligthcontroller.cpp \
-    gyro.cpp \
-    corrector.cpp
+    corrector.cpp \
+    gyroscope/demo_dmp.cpp \
+    gyroscope/I2Cdev.cpp \
+    gyroscope/MPU6050.cpp
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -30,8 +32,11 @@ HEADERS += \
     receiver.h \
     packet.h \
     fligthcontroller.h \
-    gyro.h \
-    corrector.h
+    corrector.h \
+    gyroscope/helper_3dmath.h \
+    gyroscope/I2Cdev.h \
+    gyroscope/MPU6050_6Axis_MotionApps20.h \
+    gyroscope/MPU6050.h
 
 
 LIBS += -L/usr/local/include -lpigpio -lpthread
