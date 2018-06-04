@@ -39,7 +39,10 @@ void Sensor::loop() {
                 mpu.dmpGetQuaternion(&q, fifoBuffer);
                 mpu.dmpGetGravity(&gravity, &q);
                 mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-                printf("t %ld ypr  %7.2f %7.2f %7.2f    ", time(0), ypr[0] * 180/M_PI, ypr[1] * 180/M_PI, ypr[2] * 180/M_PI);
+                //printf("t %ld ypr  %7.2f %7.2f %7.2f    ", time(0), ypr[0] * 180/M_PI, ypr[1] * 180/M_PI, ypr[2] * 180/M_PI);
+                ypr[0]*=180/M_PI;
+                ypr[1]*=180/M_PI;
+                ypr[2]*=180/M_PI;
             #endif
 
             #ifdef OUTPUT_READABLE_REALACCEL

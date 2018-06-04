@@ -1,23 +1,23 @@
 #include "fligthcontroller.h"
 
-FligthController::FligthController(QObject *parent) : QObject(parent), notifier(STDIN_FILENO, QSocketNotifier::Read) {
-    connect(&notifier, SIGNAL(activated(int)), this, SLOT(text()));
+FligthController::FligthController(QObject *parent) : QThread(parent), _notifier(STDIN_FILENO, QSocketNotifier::Read) {
+    connect(&_notifier, SIGNAL(activated(int)), this, SLOT(text()));
 
     #ifdef FILE_LOG
-        file = new QFile("/home/pi/Qt/data.txt");
-        if (file->open(QIODevice::ReadWrite))
-            stream = new QTextStream(file);
+        _file = new QFile("/home/pi/Qt/data.txt");
+        if (_file->open(QIODevice::ReadWrite))
+            _stream = new QTextStream(_file);
     #endif
 
-    _desired.motor_H_G = 0;
-    _desired.motor_H_D = 0;
-    _desired.motor_B_G = 0;
-    _desired.motor_B_D = 0;
+    _desired.motor_H_G = 22000;
+    _desired.motor_H_D = 22000;
+    _desired.motor_B_G = 22000;
+    _desired.motor_B_D = 22000;
 
-    drone.HG.pin = 17;
-    drone.HD.pin = 27;
-    drone.BG.pin = 22;
-    drone.BD.pin = 10;
+    _drone.HG.pin = 17;
+    _drone.HD.pin = 27;
+    _drone.BG.pin = 22;
+    _drone.BD.pin = 10;
 
     #ifndef DEBUG
     if(gpioInitialise()<0)
@@ -26,16 +26,16 @@ FligthController::FligthController(QObject *parent) : QObject(parent), notifier(
         qDebug() << "GPIOs initialized";
     #endif
 
-    drone.HG.speed = MIN_WIDTH;
-    drone.HD.speed = MIN_WIDTH;
-    drone.BG.speed = MIN_WIDTH;
-    drone.BD.speed = MIN_WIDTH;
+    _drone.HG.speed = MIN_WIDTH;
+    _drone.HD.speed = MIN_WIDTH;
+    _drone.BG.speed = MIN_WIDTH;
+    _drone.BD.speed = MIN_WIDTH;
 
     #ifndef DEBUG
-        gpioServo(drone.HG.pin, drone.HG.speed);
-        gpioServo(drone.HD.pin, drone.HD.speed);
-        gpioServo(drone.BG.pin, drone.BG.speed);
-        gpioServo(drone.BD.pin, drone.BD.speed);
+        gpioServo(_drone.HG.pin, _drone.HG.speed);
+        gpioServo(_drone.HD.pin, _drone.HD.speed);
+        gpioServo(_drone.BG.pin, _drone.BG.speed);
+        gpioServo(_drone.BD.pin, _drone.BD.speed);
     #endif
 
     _roll_pid = new Corrector;
@@ -44,15 +44,24 @@ FligthController::FligthController(QObject *parent) : QObject(parent), notifier(
 
     _gyro = new Sensor;
 
-    //connect(_gyro, &Gyro::data, this, &FligthController::on_sensors_updated);
-
     _gyro->start();
 }
 
-void FligthController::on_sensors_updated(double yaw, double pitch, double roll) {
-    _roll_pid->compute(roll);
-    _pitch_pid->compute(pitch);
-    _yaw_pid->compute(yaw);
+void FligthController::run() {
+    while(true) {
+        if(_last==0)
+            _last = QDateTime::currentMSecsSinceEpoch();
+        else if(QDateTime::currentMSecsSinceEpoch()-_last >= 1) {
+            update_angles(_gyro->get_angles());
+            _last = QDateTime::currentMSecsSinceEpoch();
+        }
+    }
+}
+
+void FligthController::update_angles(std::tuple<float,float,float> ypr) {
+    _roll_pid->compute(std::get<2>(ypr));
+    _pitch_pid->compute(std::get<1>(ypr));
+    _yaw_pid->compute(std::get<0>(ypr));
 
     compute_command();
 }
@@ -70,26 +79,26 @@ void FligthController::compute_command() {
     cmd.motor_B_G = _desired.motor_B_G + _roll_pid->get_output() + _yaw_pid->get_output();
     cmd.motor_B_D = _desired.motor_B_D - _pitch_pid->get_output() + _yaw_pid->get_output();
 
-    drone.HG.speed = map(cmd.motor_H_G);
-    drone.HD.speed = map(cmd.motor_H_D);
-    drone.BG.speed = map(cmd.motor_B_G);
-    drone.BD.speed = map(cmd.motor_B_D);
+    _drone.HG.speed = map(cmd.motor_H_G);
+    _drone.HD.speed = map(cmd.motor_H_D);
+    _drone.BG.speed = map(cmd.motor_B_G);
+    _drone.BD.speed = map(cmd.motor_B_D);
 
-    //qDebug() << " HG " << QString::number(drone.HG.speed) << " HD " << QString::number(drone.HD.speed)
-    //         << " BG " << QString::number(drone.BG.speed) << " BD " << QString::number(drone.BD.speed);
+    //qDebug() << " HG " << QString::number(_drone.HG.speed) << " HD " << QString::number(_drone.HD.speed)
+    //         << " BG " << QString::number(_drone.BG.speed) << " BD " << QString::number(_drone.BD.speed);
 
     #ifdef FILE_LOG
-        if(start==0)
-            start = QDateTime::currentMSecsSinceEpoch();
-        *stream << QString::number(QDateTime::currentMSecsSinceEpoch()-start) << "," << QString::number(drone.HG.speed) << "," <<
-                  QString::number(drone.HD.speed) << "," << QString::number(drone.BG.speed) << "," << QString::number(drone.BD.speed) << "\n";
+        if(_start_file==0)
+            _start_file = QDateTime::currentMSecsSinceEpoch();
+        *_stream << QString::number(QDateTime::currentMSecsSinceEpoch()-_start_file) << "," << QString::number(_drone.HG.speed) << "," <<
+                  QString::number(_drone.HD.speed) << "," << QString::number(_drone.BG.speed) << "," << QString::number(_drone.BD.speed) << "\n";
     #endif
 
     #ifndef DEBUG
-        //gpioServo(drone.HG.pin, drone.HG.speed);
-        gpioServo(drone.HD.pin, drone.HD.speed);
-        gpioServo(drone.BG.pin, drone.BG.speed);
-        //gpioServo(drone.BD.pin, drone.BD.speed);
+        //gpioServo(_drone.HG.pin, _drone.HG.speed);
+        gpioServo(_drone.HD.pin, _drone.HD.speed);
+        gpioServo(_drone.BG.pin, _drone.BG.speed);
+        //gpioServo(_drone.BD.pin, _drone.BD.speed);
     #endif
 }
 
@@ -103,10 +112,10 @@ void FligthController::on_connection_recovered() {
 
 FligthController::~FligthController() {
     #ifndef DEBUG
-        gpioServo(drone.HG.pin, MIN_WIDTH);
-        gpioServo(drone.HD.pin, MIN_WIDTH);
-        gpioServo(drone.BG.pin, MIN_WIDTH);
-        gpioServo(drone.BD.pin, MIN_WIDTH);
+        gpioServo(_drone.HG.pin, MIN_WIDTH);
+        gpioServo(_drone.HD.pin, MIN_WIDTH);
+        gpioServo(_drone.BG.pin, MIN_WIDTH);
+        gpioServo(_drone.BD.pin, MIN_WIDTH);
     #endif
 }
 

@@ -1,9 +1,10 @@
 #ifndef FLIGTHCONTROLLER_H
 #define FLIGTHCONTROLLER_H
 
-#include <QObject>
 #include <QDebug>
 #include <QSocketNotifier>
+#include <QThread>
+#include <QDateTime>
 #include <unistd.h>
 #include "packet.h"
 #include "corrector.h"
@@ -17,7 +18,6 @@
 
 #ifdef FILE_LOG
     #include <QFile>
-    #include <QDateTime>
 #endif
 
 #define MAX_WIDTH 2000
@@ -39,10 +39,11 @@ typedef struct {
     Motor BD;
 } Quadrocopter;
 
-class FligthController : public QObject {
+class FligthController : public QThread {
     Q_OBJECT
 public:
     explicit FligthController(QObject *parent = 0);
+    void run() override;
     ~FligthController();
 signals:
 
@@ -53,19 +54,20 @@ public slots:
 private slots:
     unsigned short map(unsigned short x);
     void compute_command();
-    void on_sensors_updated(double yaw, double pitch, double roll);
+    void update_angles(std::tuple<float,float,float>);
     void text();
 private:
-    Quadrocopter drone;
+    Quadrocopter _drone;
     Corrector *_pitch_pid, *_roll_pid, *_yaw_pid;
     Command _desired;
-    QSocketNotifier notifier;
+    QSocketNotifier _notifier;
     Sensor *_gyro;
+    qint64 _last;
 
     #ifdef FILE_LOG
-        QFile *file;
-        QTextStream *stream;
-        qint64 start;
+        QFile *_file;
+        QTextStream *_stream;
+        qint64 _start_file;
     #endif
 };
 
