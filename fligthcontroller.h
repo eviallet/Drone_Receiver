@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include "packet.h"
 #include "corrector.h"
+#include "sensor.h"
 #define DEBUG
 #define FILE_LOG
 
@@ -52,13 +53,14 @@ public slots:
 private slots:
     unsigned short map(unsigned short x);
     void compute_command();
-    void on_sensors_updated(double roll, double pitch);
+    void on_sensors_updated(double yaw, double pitch, double roll);
     void text();
 private:
     Quadrocopter drone;
     Corrector *_pitch_pid, *_roll_pid, *_yaw_pid;
     Command _desired;
     QSocketNotifier notifier;
+    Sensor *_gyro;
 
     #ifdef FILE_LOG
         QFile *file;

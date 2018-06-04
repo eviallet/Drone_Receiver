@@ -1,7 +1,6 @@
 #include "fligthcontroller.h"
 
 FligthController::FligthController(QObject *parent) : QObject(parent), notifier(STDIN_FILENO, QSocketNotifier::Read) {
-
     connect(&notifier, SIGNAL(activated(int)), this, SLOT(text()));
 
     #ifdef FILE_LOG
@@ -43,12 +42,17 @@ FligthController::FligthController(QObject *parent) : QObject(parent), notifier(
     _pitch_pid = new Corrector;
     _yaw_pid = new Corrector;
 
+    _gyro = new Sensor;
+
     //connect(_gyro, &Gyro::data, this, &FligthController::on_sensors_updated);
+
+    _gyro->start();
 }
 
-void FligthController::on_sensors_updated(double roll, double pitch) {
+void FligthController::on_sensors_updated(double yaw, double pitch, double roll) {
     _roll_pid->compute(roll);
     _pitch_pid->compute(pitch);
+    _yaw_pid->compute(yaw);
 
     compute_command();
 }
@@ -113,5 +117,19 @@ unsigned short FligthController::map(unsigned short x) {
 void FligthController::text() {
     QTextStream qin(stdin);
     QString line = qin.readLine();
-    _roll_pid->setParameters(line.section(" ",0,0).toDouble(), line.section(" ",1,1).toDouble(), line.section(" ",2,2).toDouble());
+    switch(line.section(" ",0,0).at(0).toLatin1()) {
+    case 'y':
+    case 'Y':
+        _yaw_pid->setParameters(line.section(" ",1,1).toDouble(), line.section(" ",2,2).toDouble(), line.section(" ",3,3).toDouble());
+        break;
+    case 'p':
+    case 'P':
+        _pitch_pid->setParameters(line.section(" ",1,1).toDouble(), line.section(" ",2,2).toDouble(), line.section(" ",3,3).toDouble());
+        break;
+    case 'r':
+    case 'R':
+        _roll_pid->setParameters(line.section(" ",1,1).toDouble(), line.section(" ",2,2).toDouble(), line.section(" ",3,3).toDouble());
+        break;
+    }
+
 }

@@ -46,7 +46,6 @@ void Receiver::on_server_data_newConnection() {
 
 void Receiver::on_socket_data_readyRead() {
     //_timer->stop();
-    qDebug() << "Available bytes : " << _socket_data->bytesAvailable();
     while((_socket_data->bytesAvailable()%(4*sizeof(short))==0)&&_socket_data->bytesAvailable()!=0) {
         QByteArray received = _socket_data->read(4*sizeof(short));
         Command cmd;
@@ -57,8 +56,7 @@ void Receiver::on_socket_data_readyRead() {
     }
 
     if(_socket_data->bytesAvailable()>0) {
-        _buffer.append(_socket_data->readAll());
-        qDebug() << "Buffer size : " << _buffer.size();
+        _socket_data->readAll();
     }
     //_timer->start();
 }

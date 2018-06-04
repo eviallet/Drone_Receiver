@@ -44,6 +44,9 @@ THE SOFTWARE.
 #ifndef _I2CDEV_H_
 #define _I2CDEV_H_
 
+
+#include <stdint.h>
+
 #ifndef TRUE
 #define TRUE	(1==1)
 #define FALSE	(0==1)

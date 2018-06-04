@@ -52,7 +52,7 @@ THE SOFTWARE.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <linux/i2c-dev.h>
-#include "I2Cdev.h"
+#include "gyroscope/I2Cdev.h"
 
 /** Default constructor.
  */

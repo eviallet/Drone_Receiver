@@ -39,7 +39,6 @@ private:
     QTcpSocket *_socket_data;
     //QTcpSocket *_socket_ping;
 
-    QByteArray _buffer;
     //QTimer *_timer;
     Command _last_cmd;
 };

@@ -39,7 +39,7 @@ THE SOFTWARE.
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
-#include "MPU6050.h"
+#include "gyroscope/MPU6050.h"
 
 /** Default constructor, uses default I2C address.
  * @see MPU6050_DEFAULT_ADDRESS
