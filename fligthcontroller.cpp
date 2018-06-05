@@ -4,6 +4,7 @@ FligthController::FligthController(QObject *parent) : QThread(parent), _notifier
     connect(&_notifier, SIGNAL(activated(int)), this, SLOT(text()));
 
     #ifdef FILE_LOG
+        QFile::remove("/home/pi/Qt/data.txt");
         _file = new QFile("/home/pi/Qt/data.txt");
         if (_file->open(QIODevice::ReadWrite))
             _stream = new QTextStream(_file);
@@ -59,9 +60,9 @@ void FligthController::run() {
 }
 
 void FligthController::update_angles(std::tuple<float,float,float> ypr) {
-    _roll_pid->compute(std::get<2>(ypr));
-    _pitch_pid->compute(std::get<1>(ypr));
     _yaw_pid->compute(std::get<0>(ypr));
+    _pitch_pid->compute(std::get<1>(ypr));
+    _roll_pid->compute(std::get<2>(ypr));
 
     compute_command();
 }
@@ -87,11 +88,14 @@ void FligthController::compute_command() {
     //qDebug() << " HG " << QString::number(_drone.HG.speed) << " HD " << QString::number(_drone.HD.speed)
     //         << " BG " << QString::number(_drone.BG.speed) << " BD " << QString::number(_drone.BD.speed);
 
+
     #ifdef FILE_LOG
         if(_start_file==0)
             _start_file = QDateTime::currentMSecsSinceEpoch();
-        *_stream << QString::number(QDateTime::currentMSecsSinceEpoch()-_start_file) << "," << QString::number(_drone.HG.speed) << "," <<
+        else {
+            *_stream << QString::number(QDateTime::currentMSecsSinceEpoch() - _start_file) << "," << QString::number(_drone.HG.speed) << "," <<
                   QString::number(_drone.HD.speed) << "," << QString::number(_drone.BG.speed) << "," << QString::number(_drone.BD.speed) << "\n";
+        }
     #endif
 
     #ifndef DEBUG

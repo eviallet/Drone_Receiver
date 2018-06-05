@@ -62,12 +62,12 @@ private:
     Command _desired;
     QSocketNotifier _notifier;
     Sensor *_gyro;
-    qint64 _last;
+    qint64 _last=0;
 
     #ifdef FILE_LOG
         QFile *_file;
         QTextStream *_stream;
-        qint64 _start_file;
+        qint64 _start_file=0;
     #endif
 };
 
