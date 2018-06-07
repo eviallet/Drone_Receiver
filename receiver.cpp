@@ -6,10 +6,10 @@ Receiver::Receiver() {/*
     _timer->setSingleShot(true);
     connect(_timer, &QTimer::timeout, this, &Receiver::on_connection_lost);
 */
-    _last_cmd.motor_B_D = 0;
-    _last_cmd.motor_H_D = 0;
-    _last_cmd.motor_B_G = 0;
-    _last_cmd.motor_H_G = 0;
+    _last_cmd.speed = 0;
+    _last_cmd.roll = 0;
+    _last_cmd.pitch = 0;
+    _last_cmd.yaw = 0;
 
     _socket_data = Q_NULLPTR;
     _server_data = new QTcpServer;

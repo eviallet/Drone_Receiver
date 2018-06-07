@@ -9,7 +9,8 @@
 #include "packet.h"
 #include "corrector.h"
 #include "sensor.h"
-#define DEBUG
+
+//#define DEBUG
 #define FILE_LOG
 
 #ifndef DEBUG
@@ -53,8 +54,8 @@ public slots:
     void on_connection_recovered();
 private slots:
     unsigned short map(unsigned short x);
+    unsigned short invmap(unsigned short x);
     void compute_command();
-    void update_angles(std::tuple<float,float,float>);
     void text();
 private:
     Quadrocopter _drone;

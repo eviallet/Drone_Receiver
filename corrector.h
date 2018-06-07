@@ -11,7 +11,7 @@ class Corrector : public QObject {
     Q_OBJECT
 public:
     explicit Corrector(QObject *parent = nullptr);
-    int compute(double);
+    void compute(double);
     int get_output();
 public slots:
     void setParameters(double, double, double);

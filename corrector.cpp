@@ -4,11 +4,12 @@ Corrector::Corrector(QObject *parent) : QObject(parent) {
 }
 
 
-int Corrector::compute(double sensor) {
+void Corrector::compute(double sensor) {
     if(_last_command == 0) {
         _last_command = QDateTime::currentMSecsSinceEpoch();
-        return 0;
+        return;
     }
+
    double dt = QDateTime::currentMSecsSinceEpoch() - _last_command;
 
    double err = sensor;
@@ -17,10 +18,10 @@ int Corrector::compute(double sensor) {
 
    output = qRound(kp * err + ki * err_sum + kd * d_err);
 
+   //qDebug() << QString::number(sensor) << QString::number(output);
+
    last_err = err;
    _last_command = QDateTime::currentMSecsSinceEpoch();
-
-   return output;
 }
 
 int Corrector::get_output() {
