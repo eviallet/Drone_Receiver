@@ -2,6 +2,7 @@
 #define FLIGTHCONTROLLER_H
 
 #include <QDebug>
+#include <QMetaType>
 #include <QSocketNotifier>
 #include <QThread>
 #include <QDateTime>
@@ -10,8 +11,13 @@
 #include "corrector.h"
 #include "sensor.h"
 
-//#define DEBUG
-#define FILE_LOG
+#define DEBUG
+//#define FILE_LOG
+#define REMOTE_GRAPH
+
+#ifdef REMOTE_GRAPH
+    #define REMOTE_GRAPH_UPDATE 50
+#endif
 
 #ifndef DEBUG
     #include <pigpio.h>
@@ -47,7 +53,7 @@ public:
     void run() override;
     ~FligthController();
 signals:
-
+    void sensor_data_changed(SensorData);
 public slots:
     void on_command_received(Command);
     void on_connection_lost();
@@ -57,6 +63,7 @@ private slots:
     unsigned short invmap(unsigned short x);
     void compute_command();
     void text();
+    void emergency_stop();
 private:
     Quadrocopter _drone;
     Corrector *_pitch_pid, *_roll_pid, *_yaw_pid;
@@ -70,6 +77,12 @@ private:
         QTextStream *_stream;
         qint64 _start_file=0;
     #endif
+
+    #ifdef REMOTE_GRAPH
+        qint64 _last_sensor_data_time = 0;
+    #endif
+
+    bool loop = true;
 };
 
 #endif // FLIGTHCONTROLLER_H

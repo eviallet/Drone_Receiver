@@ -3,6 +3,8 @@
 FligthController::FligthController(QObject *parent) : QThread(parent), _notifier(STDIN_FILENO, QSocketNotifier::Read) {
     connect(&_notifier, SIGNAL(activated(int)), this, SLOT(text()));
 
+    qRegisterMetaType<SensorData>("SensorData");
+
     #ifdef FILE_LOG
         QFile::remove("/home/pi/Qt/data.txt");
         _file = new QFile("/home/pi/Qt/data.txt");
@@ -49,7 +51,7 @@ FligthController::FligthController(QObject *parent) : QThread(parent), _notifier
 }
 
 void FligthController::run() {
-    while(true) {
+    while(loop) {
         if(_last==0)
             _last = QDateTime::currentMSecsSinceEpoch();
         else if(QDateTime::currentMSecsSinceEpoch()-_last >= 1) {
@@ -72,10 +74,23 @@ void FligthController::compute_command() {
     _roll_pid->compute(std::get<2>(ypr));
     //qDebug() << QString::number(_roll_pid->get_output());
 
-    _drone.HG.speed = map(_desired.speed + _pitch_pid->get_output() - _yaw_pid->get_output());
-    _drone.HD.speed = map(_desired.speed - _roll_pid->get_output() - _yaw_pid->get_output());
-    _drone.BG.speed = map(_desired.speed + _roll_pid->get_output() + _yaw_pid->get_output());
-    _drone.BD.speed = map(_desired.speed - _pitch_pid->get_output() + _yaw_pid->get_output());
+    int droneHG = 0, droneHD = 0, droneBG = 0, droneBD = 0;
+    if((droneHG = (int)_desired.speed + _roll_pid->get_output() - _yaw_pid->get_output())>=0 &&
+            (droneHD = (int)_desired.speed + _pitch_pid->get_output() - _yaw_pid->get_output())>=0 &&
+            (droneBG = (int)_desired.speed - _pitch_pid->get_output() + _yaw_pid->get_output())>=0 &&
+            (droneBD = (int)_desired.speed - _roll_pid->get_output() + _yaw_pid->get_output())>=0) {
+        _drone.HG.speed = map(droneHG);
+        _drone.HD.speed = map(droneHD);
+        _drone.BG.speed = map(droneBG);
+        _drone.BD.speed = map(droneBD);
+    } else {
+        #ifndef DEBUG
+            gpioServo(_drone.HG.pin, MIN_WIDTH);
+            gpioServo(_drone.HD.pin, MIN_WIDTH);
+            gpioServo(_drone.BG.pin, MIN_WIDTH);
+            gpioServo(_drone.BD.pin, MIN_WIDTH);
+        #endif
+    }
 
     //qDebug() << " HG " << QString::number(_drone.HG.speed) << " HD " << QString::number(_drone.HD.speed)
     //         << " BG " << QString::number(_drone.BG.speed) << " BD " << QString::number(_drone.BD.speed);
@@ -85,8 +100,21 @@ void FligthController::compute_command() {
         if(_start_file==0)
             _start_file = QDateTime::currentMSecsSinceEpoch();
         else {
-            *_stream << QString::number(QDateTime::currentMSecsSinceEpoch() - _start_file) << "," << QString::number(_drone.HG.speed) << "," <<
-                  QString::number(_drone.HD.speed) << "," << QString::number(_drone.BG.speed) << "," << QString::number(_drone.BD.speed) << "\n";
+            //*_stream << QString::number(QDateTime::currentMSecsSinceEpoch() - _start_file) << "," << QString::number(_drone.HG.speed) << "," <<
+            //      QString::number(_drone.HD.speed) << "," << QString::number(_drone.BG.speed) << "," << QString::number(_drone.BD.speed) << "\n";
+            *_stream << QString::number(QDateTime::currentMSecsSinceEpoch() - _start_file) << "," << QString::number(std::get<2>(ypr)) << "\n";
+        }
+    #endif
+
+    #ifdef REMOTE_GRAPH
+        if(QDateTime::currentMSecsSinceEpoch()-_last_sensor_data_time>REMOTE_GRAPH_UPDATE) {
+            SensorData s;
+            s.alt = 0;
+            s.yaw = std::get<0>(ypr);
+            s.pitch = std::get<1>(ypr);
+            s.roll = std::get<2>(ypr);
+            emit(sensor_data_changed(s));
+            _last_sensor_data_time = QDateTime::currentMSecsSinceEpoch();
         }
     #endif
 
@@ -144,6 +172,20 @@ void FligthController::text() {
         _desired.speed = invmap(line.section(" ",1,1).toShort());
         qDebug() << "Desired changed to " << QString::number(_desired.speed);
         break;
+    case 's':
+    case 'S':
+        emergency_stop();
+        break;
     }
 
+}
+
+void FligthController::emergency_stop() {
+    loop = false;
+    #ifndef DEBUG
+        gpioServo(_drone.HG.pin, MIN_WIDTH);
+        gpioServo(_drone.HD.pin, MIN_WIDTH);
+        gpioServo(_drone.BG.pin, MIN_WIDTH);
+        gpioServo(_drone.BD.pin, MIN_WIDTH);
+    #endif
 }

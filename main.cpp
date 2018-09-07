@@ -7,12 +7,11 @@
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
 
-    Receiver *drone = new Receiver;
+    Receiver *receiver = new Receiver;
     FligthController *controller = new FligthController;
 
-    drone->connect(drone, &Receiver::command_received, controller, &FligthController::on_command_received);
-    drone->connect(drone, &Receiver::connection_lost, controller, &FligthController::on_connection_lost);
-    drone->connect(drone, &Receiver::connection_recovered, controller, &FligthController::on_connection_recovered);
+    receiver->connect(receiver, &Receiver::command_received, controller, &FligthController::on_command_received);
+    receiver->connect(controller, &FligthController::sensor_data_changed, receiver, &Receiver::update_remote_graph);
 
     controller->start(QThread::HighestPriority);
 
