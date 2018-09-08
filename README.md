@@ -5,13 +5,12 @@ Receive commands from the [Transmitter](https://github.com/EViallet/Drone_Transm
 
 System output is mesured using MPU6050 gyroscope via [this awesome library](https://github.com/richardghirst/PiBits/tree/master/MPU6050-Pi-Demo).
 
-PPM sequence at 1.0 ms pulse (lowest/arming pulse)
-<img src="piscope.PNG" height="450" width="800">
 
 # Working
 * Wifi connection and transmission
 * Writing to the motors
+* PIDs tuning, via computer software
+* Sending samples of current drone's angles to computer
 
-# TODO
-* PIDs tuning
-* Maybe send back some infos to the transmitter, like current angles and/or speed (3D model & motors speeds in real time on controller?)
+Example PPM sequence at 1.0 ms pulse (lowest/arming pulse)
+<img src="piscope.PNG" height="450" width="800">
