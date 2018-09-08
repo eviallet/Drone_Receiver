@@ -5,6 +5,74 @@
 #include <QByteArray>
 #include <math.h>
 
+
+// IN DATA (with the first twp bytes being TYPE (SETPOINT or PIDPARAMS)
+
+const static char SETPOINT = 's';
+struct SetPoint {
+    unsigned short speed;
+    short yaw;
+    short pitch;
+    short roll;
+    short checksum;
+};
+
+static SetPoint decode_setpoint(QByteArray bytes) {
+    SetPoint sp;
+    sp.speed = *reinterpret_cast<const short*>(bytes.mid(2,2).data());
+    sp.yaw = *reinterpret_cast<const short*>(bytes.mid(4,2).data());
+    sp.pitch = *reinterpret_cast<const short*>(bytes.mid(6,2).data());
+    sp.roll = *reinterpret_cast<const short*>(bytes.mid(8,2).data());
+    sp.checksum = *reinterpret_cast<const short*>(bytes.mid(10,2).data());
+
+    return sp;
+}
+
+static bool check_setpoint_integrity(SetPoint sp) {
+    return sp.checksum == sp.speed+sp.yaw+sp.pitch+sp.roll;
+}
+
+
+const static char PIDPARAMS = 'p';
+struct PIDParams {
+    float ykp;
+    float yti;
+    float ytd;
+    float pkp;
+    float pti;
+    float ptd;
+    float rkp;
+    float rti;
+    float rtd;
+    float checksum;
+};
+
+static PIDParams decode_pid_params(QByteArray bytes) {
+        PIDParams p;
+        p.ykp = *reinterpret_cast<const float*>(bytes.mid(2,4).data());
+        p.yti = *reinterpret_cast<const float*>(bytes.mid(6,4).data());
+        p.ytd = *reinterpret_cast<const float*>(bytes.mid(10,4).data());
+        p.pkp = *reinterpret_cast<const float*>(bytes.mid(14,4).data());
+        p.pti = *reinterpret_cast<const float*>(bytes.mid(18,4).data());
+        p.ptd = *reinterpret_cast<const float*>(bytes.mid(22,4).data());
+        p.rkp = *reinterpret_cast<const float*>(bytes.mid(26,4).data());
+        p.rti = *reinterpret_cast<const float*>(bytes.mid(30,4).data());
+        p.rtd = *reinterpret_cast<const float*>(bytes.mid(34,4).data());
+        p.checksum = *reinterpret_cast<const float*>(bytes.mid(38,4).data());
+
+        return p;
+}
+
+
+static bool check_pid_params_integrity(PIDParams p) {
+    return p.checksum == p.ykp+p.yti+p.ytd+p.pkp+p.pti+p.ptd+p.rkp+p.rti+p.rtd;
+}
+
+
+
+
+// OUT DATA
+
 //#define SENSOR_THRESHOLD 0.75    // relative variation before updating remote graph
 
 struct Command {

@@ -62,17 +62,25 @@ void FligthController::run() {
 }
 
 
-void FligthController::on_command_received(Command cmd) {
-    _desired = cmd;
+void FligthController::on_setpoint_received(SetPoint sp) {
+    _desired = sp;
+    _yaw_pid->setSetpoint(sp.yaw);
+    _pitch_pid->setSetpoint(sp.pitch);
+    _roll_pid->setSetpoint(sp.roll);
+}
+
+void FligthController::on_pid_params_received(PIDParams p) {
+    _yaw_pid->setParameters(p.ykp,p.ytd,p.yti);
+    _pitch_pid->setParameters(p.pkp,p.ptd,p.pti);
+    _roll_pid->setParameters(p.rkp,p.rtd,p.rti);
 }
 
 void FligthController::compute_command() {
     std::tuple<float,float,float> ypr = _gyro->get_angles();
-    //qDebug() << QString::number(std::get<0>(ypr)) << QString::number(std::get<1>(ypr)) << QString::number(std::get<2>(ypr));
+
     _yaw_pid->compute(std::get<0>(ypr));
     _pitch_pid->compute(std::get<1>(ypr));
     _roll_pid->compute(std::get<2>(ypr));
-    //qDebug() << QString::number(_roll_pid->get_output());
 
     int droneHG = 0, droneHD = 0, droneBG = 0, droneBD = 0;
     if((droneHG = (int)_desired.speed + _roll_pid->get_output() - _yaw_pid->get_output())>=0 &&

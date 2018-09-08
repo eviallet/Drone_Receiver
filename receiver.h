@@ -15,7 +15,8 @@ class Receiver : public QObject {
 public:
     Receiver();
 signals:
-    void command_received(Command);
+    void setpoint_received(SetPoint);
+    void pid_params_received(PIDParams);
 public slots:
     void update_remote_graph(SensorData s);
 private slots:

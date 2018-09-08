@@ -55,7 +55,8 @@ public:
 signals:
     void sensor_data_changed(SensorData);
 public slots:
-    void on_command_received(Command);
+    void on_setpoint_received(SetPoint);
+    void on_pid_params_received(PIDParams);
     void on_connection_lost();
     void on_connection_recovered();
 private slots:
@@ -67,7 +68,7 @@ private slots:
 private:
     Quadrocopter _drone;
     Corrector *_pitch_pid, *_roll_pid, *_yaw_pid;
-    Command _desired;
+    SetPoint _desired;
     QSocketNotifier _notifier;
     Sensor *_gyro;
     qint64 _last=0;

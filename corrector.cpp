@@ -37,11 +37,13 @@ int Corrector::get_output() {
 
 void Corrector::setSetpoint(int sp) {
     setpoint = sp;
+    if(sp!=0)
+        qDebug() << "SetPoint updated to " << QString::number(sp);
 }
 
 void Corrector::setParameters(double Kp, double Ki, double Kd) {
    kp = Kp;
    ki = Ki;
    kd = Kd;
-   qDebug() << "Parameters updated to" << QString::number(Kp) << QString::number(Ki) << QString::number(Kd);
+   qDebug() << "Parameters updated to " << QString::number(Kp) << QString::number(Ki) << QString::number(Kd);
 }

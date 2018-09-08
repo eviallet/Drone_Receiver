@@ -35,16 +35,22 @@ void Receiver::on_server_data_newConnection() {
 }
 
 void Receiver::on_socket_data_readyRead() {
-    while((_socket_data->bytesAvailable()%(4*sizeof(short))==0)&&_socket_data->bytesAvailable()!=0) {
-        QByteArray received = _socket_data->read(4*sizeof(short));
-        Command cmd;
-        memcpy(cmd.Bytes, received.data(), 4*sizeof(short));
-
-        emit(command_received(cmd));
-    }
-
-    if(_socket_data->bytesAvailable()>0)
-        _socket_data->readAll();
+    QByteArray bytes = _socket_data->readAll();
+    //qDebug() << "Decoding " << QString::number(bytes.length()) << " bytes";
+    //while(bytes.length()>0) {
+        if(bytes.at(0)==SETPOINT) {
+            SetPoint sp = decode_setpoint(bytes);
+            if(check_setpoint_integrity(sp))
+                emit(setpoint_received(sp));
+            bytes.remove(0,2+sizeof(SetPoint));
+        }
+        else if(bytes.at(0)==PIDPARAMS) {
+            PIDParams p = decode_pid_params(bytes);
+            if(check_pid_params_integrity(p))
+                emit(pid_params_received(p));
+            bytes.remove(0,2+sizeof(PIDParams));
+        }
+    //}
 }
 
 

@@ -10,7 +10,8 @@ int main(int argc, char *argv[]) {
     Receiver *receiver = new Receiver;
     FligthController *controller = new FligthController;
 
-    receiver->connect(receiver, &Receiver::command_received, controller, &FligthController::on_command_received);
+    receiver->connect(receiver, &Receiver::setpoint_received, controller, &FligthController::on_setpoint_received);
+    receiver->connect(receiver, &Receiver::pid_params_received, controller, &FligthController::on_pid_params_received);
     receiver->connect(controller, &FligthController::sensor_data_changed, receiver, &Receiver::update_remote_graph);
 
     controller->start(QThread::HighestPriority);
