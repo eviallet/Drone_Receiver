@@ -12,6 +12,7 @@ int main(int argc, char *argv[]) {
 
     receiver->connect(receiver, &Receiver::setpoint_received, controller, &FligthController::on_setpoint_received);
     receiver->connect(receiver, &Receiver::pid_params_received, controller, &FligthController::on_pid_params_received);
+    receiver->connect(receiver, &Receiver::settings_received, controller, &FligthController::on_settings_received);
     receiver->connect(controller, &FligthController::sensor_data_changed, receiver, &Receiver::update_remote_graph);
 
     controller->start(QThread::HighestPriority);

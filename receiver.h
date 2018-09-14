@@ -17,6 +17,7 @@ public:
 signals:
     void setpoint_received(SetPoint);
     void pid_params_received(PIDParams);
+    void settings_received(Settings);
 public slots:
     void update_remote_graph(SensorData s);
 private slots:

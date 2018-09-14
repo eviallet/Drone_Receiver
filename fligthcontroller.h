@@ -57,6 +57,7 @@ signals:
 public slots:
     void on_setpoint_received(SetPoint);
     void on_pid_params_received(PIDParams);
+    void on_settings_received(Settings);
     void on_connection_lost();
     void on_connection_recovered();
 private slots:
@@ -71,6 +72,7 @@ private:
     SetPoint _desired;
     QSocketNotifier _notifier;
     Sensor *_gyro;
+    Settings _settings;
     qint64 _last=0;
 
     #ifdef FILE_LOG

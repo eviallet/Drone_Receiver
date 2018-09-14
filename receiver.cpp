@@ -49,6 +49,10 @@ void Receiver::on_socket_data_readyRead() {
             if(check_pid_params_integrity(p))
                 emit(pid_params_received(p));
             bytes.remove(0,2+sizeof(PIDParams));
+        } else if(bytes.at(0)==SETTINGS) {
+            Settings t = decode_settings(bytes);
+            if(check_settings_integrity(t))
+                emit(settings_received(t));
         }
     //}
 }

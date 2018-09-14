@@ -12,6 +12,11 @@ FligthController::FligthController(QObject *parent) : QThread(parent), _notifier
             _stream = new QTextStream(_file);
     #endif
 
+    _settings.HG = true;
+    _settings.HD = true;
+    _settings.BG = true;
+    _settings.BD = true;
+
     _desired.speed = 0;
     _desired.yaw = 0;
     _desired.pitch = 0;
@@ -75,6 +80,11 @@ void FligthController::on_pid_params_received(PIDParams p) {
     _roll_pid->setParameters(p.rkp,p.rtd,p.rti);
 }
 
+void FligthController::on_settings_received(Settings t) {
+    _settings = t;
+    qDebug() << "New settings received : " << t.HG << "-" << t.HD << "-" << t.BG << "-" << t.BD;
+}
+
 void FligthController::compute_command() {
     std::tuple<float,float,float> ypr = _gyro->get_angles();
 
@@ -127,10 +137,22 @@ void FligthController::compute_command() {
     #endif
 
     #ifndef DEBUG
-        gpioServo(_drone.HG.pin, _drone.HG.speed);
-        //gpioServo(_drone.HD.pin, _drone.HD.speed);
-        //gpioServo(_drone.BG.pin, _drone.BG.speed);
-        gpioServo(_drone.BD.pin, _drone.BD.speed);
+        if(_settings.HG)
+            gpioServo(_drone.HG.pin, _drone.HG.speed);
+        else
+            gpioServo(_drone.HG.pin, MIN_WIDTH);
+        if(_settings.HD)
+            gpioServo(_drone.HD.pin, _drone.HD.speed);
+        else
+            gpioServo(_drone.HD.pin, MIN_WIDTH);
+        if(_settings.BG)
+            gpioServo(_drone.BG.pin, _drone.BG.speed);
+        else
+            gpioServo(_drone.BG.pin, MIN_WIDTH);
+        if(_settings.BD)
+            gpioServo(_drone.BD.pin, _drone.BD.speed);
+        else
+            gpioServo(_drone.BD.pin, MIN_WIDTH);
     #endif
 }
 

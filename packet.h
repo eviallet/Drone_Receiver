@@ -33,6 +33,8 @@ static bool check_setpoint_integrity(SetPoint sp) {
 }
 
 
+
+
 const static char PIDPARAMS = 'p';
 struct PIDParams {
     float ykp;
@@ -69,6 +71,36 @@ static bool check_pid_params_integrity(PIDParams p) {
 }
 
 
+
+
+const static char SETTINGS = 't';
+struct Settings {
+    bool HG;
+    bool HD;
+    bool BG;
+    bool BD;
+    char checksum;
+};
+
+static Settings decode_settings(QByteArray bytes) {
+    Settings t;
+    t.HG = bytes.mid(1,1).data()[0]=='y';
+    t.HD = bytes.mid(2,1).data()[0]=='y';
+    t.BG = bytes.mid(3,1).data()[0]=='y';
+    t.BD = bytes.mid(4,1).data()[0]=='y';
+    t.checksum = bytes.mid(5,1).data()[0];
+
+    return t;
+}
+
+static bool check_settings_integrity(Settings t) {
+    char HG = t.HG?'y':'n';
+    char HD = t.HD?'y':'n';
+    char BG = t.BG?'y':'n';
+    char BD = t.BD?'y':'n';
+    char checksum = HG+HD+BG+BD;
+    return t.checksum==checksum;
+}
 
 
 // OUT DATA
